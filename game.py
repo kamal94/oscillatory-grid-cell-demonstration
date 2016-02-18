@@ -25,19 +25,22 @@ gameDisplay = pygame.display.set_mode(dDimensions)
 pygame.display.set_caption('Rat Grid Cell Simulation')
 clock = pygame.time.Clock()
 
+#define rat properties and simple function(s)
 ratImage = pygame.image.load('rat.gif')
-
 ratX = 50
 ratY = 50
 def rat(x, y):
 	gameDisplay.blit(ratImage, (ratX, ratY))
 
+#define game control mechanism properties
 crashed = False
 isKeyPressed = False
 pressedKey = pygame.K_DOWN
 
+#the game loop
 while not crashed:
 
+	#event handler
 	for event in pygame.event.get():
 
 		#if used hit the exit button
@@ -49,10 +52,14 @@ while not crashed:
 			isKeyPressed = True
 			pressedKey = event.key
 
+		#if user takes their hands off
 		if event.type == pygame.KEYUP:
 			isKeyPressed = False
 
+	#if the user has a key pressed
 	if isKeyPressed:
+		# if right or left, move the rat's position
+		# and adjust the frequence
 		if pressedKey == pygame.K_RIGHT:
 			ratX += 1
 			freq += 0.01
@@ -60,10 +67,13 @@ while not crashed:
 			ratX -= 1
 			freq -= 0.01
 
+		#update the display and print the event
 		print(event)
 		gameDisplay.fill(white)
 		rat(ratY, ratY)
 		updateGraph(freq)
 		print("frequency: " + str(freq))
 		pygame.display.update()
+
+	#run the next game step
 	clock.tick(FPS)
