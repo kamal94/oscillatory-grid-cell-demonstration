@@ -42,7 +42,7 @@ def displayRat(x, y):
 def calculateRatPosition(xSpe, xLoc, ySpe, yLoc):
 	xLoc += xSpe * FPS * speedScale
 	yLoc += ySpe * FPS * speedScale
-	return (x,y)
+	return (xLoc,yLoc)
 
 #define game control mechanism properties
 crashed = False
