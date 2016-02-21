@@ -5,7 +5,7 @@ import time
 
 #important constants
 somaStaticFreq = 6.42
-dendriteStaticFrequency = 6.91
+dendriteStaticFrequency = 6.42
 threshold = 0.80
 
 #just for the beginning, this is true
@@ -17,9 +17,8 @@ timeEnd = 4
 plt.ion()
 # plt.show(block=True)
 tstart = time.time()            # for profiling
-resolution = 0.01
-x = arange(timeStart, timeEnd, resolution)            # x-array
-freq = 0.0
+resolution = 1
+x = []            				# x-array
 
 #set up dendrite plot and a function to update it
 plt.figure(1)
@@ -27,44 +26,61 @@ dendFig = plt.subplot(411)
 somaFig = plt.subplot(412)
 totalFig = plt.subplot(413)
 fireFig = plt.subplot(414)
-dendLine, = dendFig.plot(x, cos(2*pi*x*(dendriteStaticFrequency+freq)))
-somaLine, = somaFig.plot(x, cos(2*pi*x*somaStaticFreq))
-totalLine, = totalFig.plot(x, cos(2*pi*x*resultantFrequency))
-firePointsX = arange(timeStart, timeEnd, resolution*10)
-firePointsY = (cos(2*pi*firePointsX*resultantFrequency)>threshold).astype(int)
+dendYdata = []
+dendLine, = dendFig.plot(x, dendYdata)
+somaYdata = []
+somaLine, = somaFig.plot(x, somaYdata)
+totalYdata = []
+totalLine, = totalFig.plot(x, totalYdata)
+firePointsX = []
+firePointsY = []
 fireLine, = fireFig.plot(firePointsX, firePointsY, marker='o', linestyle='')
 plt.show()
-
-def updateGraphs(currentTime, dendSpeedFreq, dendLine, somaLine, totalLine):
-	x = arange(currentTime - 4, currentTime, resolution)
+counter = 0
+def updateGraphs(currentTime, speed, dendLine, somaLine, totalLine):
+	currentTimeStep = currentTime*resolution
+	x.append(currentTimeStep)
 	#update the frequencies
-	dendTotalFrequency = dendriteStaticFrequency+dendSpeedFreq
+	dendTotalFrequency = dendriteStaticFrequency+speed
 	resultantFrequency = dendTotalFrequency - somaStaticFreq
+	#update figure boundaries
+	dendFig.axis([currentTime-4, currentTimeStep, -1, 1])
+	somaFig.axis([currentTime-4, currentTimeStep, -1, 1])
+	totalFig.axis([currentTime-4, currentTimeStep, -1, 1])
 	#update dendrite figure
-	dendLine.set_ydata(cos(2*pi*x*dendTotalFrequency))
-	# dendLine.set_xdata(x)
+	dendYdata.append(sin(2*pi*currentTimeStep*dendTotalFrequency))
+	dendLine.set_data(x, dendYdata)
 	#update soma figure
-	somaLine.set_ydata(cos(2*pi*x*somaStaticFreq))
-	# somaLine.set_xdata(x)
+	somaYdata.append(sin(2*pi*currentTimeStep*somaStaticFreq))
+	somaLine.set_data(x, somaYdata)
 	#update total figure
-	totalLine.set_ydata(cos(2*pi*x*resultantFrequency))
+	totalYdata.append(sin(2*pi*currentTimeStep*resultantFrequency))
+	totalLine.set_data(x, totalYdata)
 	# totalLine.set_xdata(x)
 	#update fire line 
-	firePointsX = arange(currentTime-4, currentTime, resolution*10)
-	firePointsY = (cos(2*pi*firePointsX*resultantFrequency)>threshold).astype(int)
+	# if counter % 10 == 0:
+	firePointsX.append(currentTimeStep*resolution)
+	if sin(2*pi*currentTimeStep*resultantFrequency) > threshold:
+		firePointsY.append(1)
+	else:
+		firePointsY.append(0)
 	fireLine.set_ydata(firePointsY)
 	fireLine.set_xdata(firePointsX)
+
+	fireFig.axis([currentTime-4, currentTimeStep, 0, 2])
+	# dendFig.clear()
+	# plt.draw()
 	
 
 # def updateDend(frequencey):
-# 	dendLine.set_ydata(x, cos(x*dendriteStaticFrequency))
+# 	dendLine.set_ydata(x, sin(x*dendriteStaticFrequency))
 # 	plt.draw()
-    # dendrline.set_ydata(cos(x*dendriteStaticFrequency))  # update the data
+    # dendrline.set_ydata(sin(x*dendriteStaticFrequency))  # update the data
     # plt.draw()
 
 #draw static soma frequency
 # somaline, = plt.plot(x,sin(x))
-# dendrline.set_ydata(cos(x*somaFreq))  # update the data
+# dendrline.set_ydata(sin(x*somaFreq))  # update the data
 # plt.draw()
 
 
@@ -72,7 +88,7 @@ def updateGraphs(currentTime, dendSpeedFreq, dendLine, somaLine, totalLine):
 white = (255, 255, 255)
 black = (0, 0, 0)
 pygame.init()
-FPS = 60
+FPS = 10
 dWidth = 600
 dHeight = 400
 dDimensions = (dWidth, dHeight)
@@ -90,7 +106,7 @@ speedScale = 0.01
 
 def displayRat(x, y):
 	gameDisplay.blit(ratImage, (ratX, -ratY))
-	print("displaying rat at (" + str(ratX) + ", " + str(ratY)+ ")")
+	# print("displaying rat at (" + str(ratX) + ", " + str(ratY)+ ")")
 
 def calculateRatPosition(xSpe, xLoc, ySpe, yLoc):
 	xLoc += xSpe * FPS * speedScale
@@ -102,6 +118,9 @@ crashed = False
 isKeyPressed = False
 pressedKey = None
 time = 0
+dt = 1/FPS
+prev_x = ratX
+prev_y = ratY
 
 #the game loop
 while not crashed:
@@ -128,19 +147,15 @@ while not crashed:
 		# and adjust the frequence
 		if pressedKey == pygame.K_RIGHT:
 			xSpeed += 1
-			freq += 0.01
 		elif pressedKey == pygame.K_LEFT:
 			xSpeed -= 1
-			freq -= 0.01
 		elif pressedKey == pygame.K_UP:
 			ySpeed += 1
-			# freq -= 0.01
 		elif pressedKey == pygame.K_DOWN:
 			ySpeed -= 1
-			# freq -= 0.01
 
-		#update the display and print the event
-		print(event)
+		# update the display and print the event
+		# print(event)
 
 	#if rat reached a vertical edge flip the x speed
 	if(ratX > dWidth or ratX < 0):
@@ -150,12 +165,23 @@ while not crashed:
 		ySpeed = -ySpeed
 
 	#calculate the position of the rat and display it
+	prev_x = ratX
+	prev_y = ratY
 	(ratX, ratY) = calculateRatPosition(xSpeed, ratX, ySpeed, ratY)
+
 	gameDisplay.fill(white)
 	displayRat(ratY, ratY)
+
+	#calculate the speed of the rat
+	
+	dx = ratX - prev_x
+	dy = ratY - prev_y
+	speed = sqrt( xSpeed**2 + ySpeed**2 ) / 100
+	angle = arctan( (dy/dt) / (dx/dt + 0.0001) )
+	print("speed: " + str(speed))
+	print("angle: " + str(angle))
 	time += 0.01
-	updateGraphs(time, freq, dendLine, somaLine, totalLine)
-	# print("frequsency: " + str(freq))
+	updateGraphs(time, speed, dendLine, somaLine, totalLine)
 	pygame.display.update()
 	#run the next game step
 	clock.tick(FPS)
