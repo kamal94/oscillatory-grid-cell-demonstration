@@ -1,25 +1,78 @@
 import pygame
-from pylab import *
+import matplotlib.pyplot as plt
+from numpy import *
 import time
 
-#set up the figure
-ion()
-tstart = time.time()               # for profiling
-x = arange(0,2*pi,0.01)            # x-array
-line, = plot(x,cos(x))
-freq = 0.00
-def updateGraph(frequencey):
-    line.set_ydata(cos(x*2*pi*frequencey))  # update the data
-    draw()
+#important constants
+somaStaticFreq = 6.42
+dendriteStaticFrequency = 6.91
+threshold = 0.80
 
-# somaFreq = 6.42
-# dendriteStaticFrequency = 6.91
+#just for the beginning, this is true
+resultantFrequency = dendriteStaticFrequency - somaStaticFreq
+
+#set up the figure
+timeStart = 0
+timeEnd = 4
+plt.ion()
+# plt.show(block=True)
+tstart = time.time()            # for profiling
+resolution = 0.01
+x = arange(timeStart, timeEnd, resolution)            # x-array
+freq = 0.0
+
+#set up dendrite plot and a function to update it
+plt.figure(1)
+dendFig = plt.subplot(411)
+somaFig = plt.subplot(412)
+totalFig = plt.subplot(413)
+fireFig = plt.subplot(414)
+dendLine, = dendFig.plot(x, cos(2*pi*x*(dendriteStaticFrequency+freq)))
+somaLine, = somaFig.plot(x, cos(2*pi*x*somaStaticFreq))
+totalLine, = totalFig.plot(x, cos(2*pi*x*resultantFrequency))
+firePointsX = arange(timeStart, timeEnd, resolution*10)
+firePointsY = (cos(2*pi*firePointsX*resultantFrequency)>threshold).astype(int)
+fireLine, = fireFig.plot(firePointsX, firePointsY, marker='o', linestyle='')
+plt.show()
+
+def updateGraphs(currentTime, dendSpeedFreq, dendLine, somaLine, totalLine):
+	x = arange(currentTime - 4, currentTime, resolution)
+	#update the frequencies
+	dendTotalFrequency = dendriteStaticFrequency+dendSpeedFreq
+	resultantFrequency = dendTotalFrequency - somaStaticFreq
+	#update dendrite figure
+	dendLine.set_ydata(cos(2*pi*x*dendTotalFrequency))
+	# dendLine.set_xdata(x)
+	#update soma figure
+	somaLine.set_ydata(cos(2*pi*x*somaStaticFreq))
+	# somaLine.set_xdata(x)
+	#update total figure
+	totalLine.set_ydata(cos(2*pi*x*resultantFrequency))
+	# totalLine.set_xdata(x)
+	#update fire line 
+	firePointsX = arange(currentTime-4, currentTime, resolution*10)
+	firePointsY = (cos(2*pi*firePointsX*resultantFrequency)>threshold).astype(int)
+	fireLine.set_ydata(firePointsY)
+	fireLine.set_xdata(firePointsX)
+	
+
+# def updateDend(frequencey):
+# 	dendLine.set_ydata(x, cos(x*dendriteStaticFrequency))
+# 	plt.draw()
+    # dendrline.set_ydata(cos(x*dendriteStaticFrequency))  # update the data
+    # plt.draw()
+
+#draw static soma frequency
+# somaline, = plt.plot(x,sin(x))
+# dendrline.set_ydata(cos(x*somaFreq))  # update the data
+# plt.draw()
+
 
 #define simple colors
 white = (255, 255, 255)
 black = (0, 0, 0)
 pygame.init()
-FPS = 30
+FPS = 60
 dWidth = 600
 dHeight = 400
 dDimensions = (dWidth, dHeight)
@@ -48,6 +101,7 @@ def calculateRatPosition(xSpe, xLoc, ySpe, yLoc):
 crashed = False
 isKeyPressed = False
 pressedKey = None
+time = 0
 
 #the game loop
 while not crashed:
@@ -99,7 +153,8 @@ while not crashed:
 	(ratX, ratY) = calculateRatPosition(xSpeed, ratX, ySpeed, ratY)
 	gameDisplay.fill(white)
 	displayRat(ratY, ratY)
-	updateGraph(freq)
+	time += 0.01
+	updateGraphs(time, freq, dendLine, somaLine, totalLine)
 	# print("frequsency: " + str(freq))
 	pygame.display.update()
 	#run the next game step
