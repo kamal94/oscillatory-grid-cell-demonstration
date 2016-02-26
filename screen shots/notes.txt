@@ -1,0 +1,31 @@
+or ang in angles:
+			self.BH*self.pos()
+			result = cos( dot( (2*pi*self.somaStaticFreq*self.BH*self.pos()), (ang) ) )
+			# result = cos(6.42*2*pi*timeStep) + cos(6.42 + 6.42*0.00385*self.absSpeed*cos(self.angle-ang))
+			# Wi = self.somaStaticFreq + self.absSpeed*speedScale*cos(self.angle-ang)
+			# result = cos(Wi * timeStep) + cos(self.somaStaticFreq*timeStep)
+			self.functions.append(result)
+
+		def listProduct(l: list):
+			result = 1
+			if len(l) == 0:
+				return 0
+			for i in l:
+				result *= i
+			return result
+
+		answer = listProduct(self.functions)
+		print(self.functions)
+		if answer > self.threshold:
+			self.fired = True
+		else:
+			self.fired = False
+
+PARMETERS USED:
+threshold = 0.8
+BH = 0.00385
+speed: 
+	absolute speed is: one unit and half unit, depending on screenshot
+	x, y speed differed between rats in order to simulate the different angles
+width = 800
+height = 400
