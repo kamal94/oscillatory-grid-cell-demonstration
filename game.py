@@ -83,11 +83,10 @@ class Rat:
 		self.functions = []
 		angles = []
 		angles.append(prefAngleZero)
-		# angles.append(prefAngleSixty)
-		# angles.append(prefAngleOneTwenty)
+		angles.append(prefAngleSixty)
+		angles.append(prefAngleOneTwenty)
 		# angles.append(prefAngleOneEighty)
 		# angles.append(prefAngleTwoFourty)
-		# print(self.angle)
 		for ang in angles:
 			self.BH*self.pos()
 			result = cos( dot( (2*pi*self.somaStaticFreq*self.BH*self.pos()), (ang) ) )
@@ -105,27 +104,10 @@ class Rat:
 			return result
 
 		answer = listProduct(self.functions)
-		# print(self.functions)
-		if answer > self.threshold:
+		if all(answer > self.threshold):
 			self.fired = True
 		else:
 			self.fired = False
-		# self.fired = True
-		# for i in self.functions:
-		# 	if i < self.threshold:
-		# 		self.fired = False
-		# if all(pulse > self.threshold for pulse in functions):
-		# 	print(pulse)
-		# # if answer >= self.threshold:
-		# 	print("result: " + str(result))
-		# 	print("functions: " + str(functions))
-		# if self.fi:
-		# 	print("functions: " + str(self.functions))
-		# 	print("id: " + str(self.id))
-		# else:
-		# 	print("id: " + str(self.id) + " did not fire!")
-		# else:
-		# 	self.fired = False
 		
 		
 
@@ -136,6 +118,11 @@ def takeScreenShot(surface):
 	name = str(time.time())+"screenshot.jpg"
 	pygame.image.save(sub, name)
 
+def drawCenterOrientation(surface, width, height, color):
+	for x in range(width):
+		surface.set_at((x, int(height/2)), color)
+	for y in range(width):
+		surface.set_at((int(width/2), y), color)
 #important constants
 threshold = 0.80
 
@@ -263,6 +250,7 @@ x = []            				# x-array
 white = (255, 255, 255)
 black = (0, 0, 0)
 red = (139,0,0)
+green = (0, 250, 0)
 pygame.init()
 FPS = 60
 dWidth = 800
@@ -281,7 +269,10 @@ clock = pygame.time.Clock()
 rats = []
 j = 300
 for i in range(j):
-	rats.append( Rat(0, dHeight, i/(j), (j-i)/(j), 0.8, i))
+	rats.append( Rat(dWidth/2, dHeight/2, i/(j), (j-i)/(j), 0.8, i))
+	rats.append( Rat(dWidth/2, dHeight/2, -i/(j), (j-i)/(j), 0.8, i))
+	rats.append( Rat(dWidth/2, dHeight/2, i/(j), -(j-i)/(j), 0.8, i))
+	rats.append( Rat(dWidth/2, dHeight/2, -i/(j), -(j-i)/(j), 0.8, i))
 
 
 #define game control mechanism properties
@@ -330,6 +321,8 @@ while not crashed:
 				rat.ySpeed -= 1
 		elif pressedKey == pygame.K_RETURN:
 			takeScreenShot(gameDisplay)
+		elif pressedKey == pygame.K_d:
+			drawCenterOrientation(gameDisplay, dWidth, dHeight, green)
 
 
 	for rat in rats:

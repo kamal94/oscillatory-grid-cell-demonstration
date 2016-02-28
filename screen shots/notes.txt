@@ -29,3 +29,9 @@ speed:
 	x, y speed differed between rats in order to simulate the different angles
 width = 800
 height = 400
+
+		prefAngleZero = array([1, 0])
+		prefAngleSixty = array([1/2, sqrt(3)/2])
+		prefAngleOneTwenty = array([-1/2, sqrt(3)/2])
+		prefAngleOneEighty = array([-1, 0])
+		prefAngleTwoFourty = array([-1/2, -sqrt(3)/2])
